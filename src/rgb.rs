@@ -10,6 +10,9 @@ pub struct Rgb {
 }
 
 impl Rgb {
+    /// Compute the duration of a tick (in microseconds, for use in [`Rgb::step`]),
+    /// such that complete cycles through the 3 components happen at the given
+    /// `frame_rate` (in hertz).
     fn frame_tick_time(frame_rate: u64) -> u64 {
         1_000_000 / (3 * frame_rate * LEVELS as u64)
     }
@@ -23,6 +26,9 @@ impl Rgb {
         }
     }
 
+    /// Given a specific LED RGB component (`{0: red, 1: blue, 2: green}`),
+    /// using the current `level` for the component, turn it on for `level` ticks,
+    /// and off for ([`LEVELS`]-`level`) ticks, for a total duration [LEVELS] ticks.
     async fn step(&mut self, led: usize) {
         let level = self.levels[led];
         if level > 0 {
@@ -31,9 +37,9 @@ impl Rgb {
             Timer::after_micros(on_time).await;
             self.rgb[led].set_low();
         }
-        let level = LEVELS - level;
-        if level > 0 {
-            let off_time = level as u64 * self.tick_time;
+        let inverse_level = LEVELS - level;
+        if inverse_level > 0 {
+            let off_time = inverse_level as u64 * self.tick_time;
             Timer::after_micros(off_time).await;
         }
     }

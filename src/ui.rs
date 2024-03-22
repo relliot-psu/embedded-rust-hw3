@@ -6,6 +6,7 @@ struct UiState {
 }
 
 impl UiState {
+    /// Print a description of the UiState via RTT.
     fn show(&self) {
         let names = ["red", "green", "blue"];
         rprintln!();

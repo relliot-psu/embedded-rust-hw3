@@ -25,14 +25,25 @@ use microbit_bsp::{
 };
 use num_traits::float::FloatCore;
 
+/// Current global state of the color of the LED, as array of intensity levels: `[red, green, blue]`,
+/// in the range from [0, [LEVELS])
 pub static RGB_LEVELS: Mutex<ThreadModeRawMutex, [u32; 3]> = Mutex::new([0; 3]);
+/// Number of increments of brightness used for each of red, green, and blue, in the RGB LED.
 pub const LEVELS: u32 = 16;
 
+/// Current global rate at which the LED color is refreshed
+pub static FRAME_RATE_LEVEL: Mutex<ThreadModeRawMutex, u64> = Mutex::new(0);
+/// Number of increments of brightness used for each of red, green, and blue, in the RGB LED.
+pub const FRAME_RATE_INCREMENT: u64 = 10;
+pub const FRAME_RATE_MIN: u64 = 10;
+
+/// Copy the current LED RGB level values out of the global [RGB_LEVELS]
 async fn get_rgb_levels() -> [u32; 3] {
     let rgb_levels = RGB_LEVELS.lock().await;
     *rgb_levels
 }
 
+/// Set the current RGB level values in the global [RGB_LEVELS]
 async fn set_rgb_levels<F>(setter: F)
 where
     F: FnOnce(&mut [u32; 3]),
@@ -46,6 +57,7 @@ async fn main(_spawner: Spawner) -> ! {
     rtt_init_print!();
     let board = Microbit::default();
 
+    // for reading from the potentiometer
     bind_interrupts!(struct Irqs {
         SAADC => saadc::InterruptHandler;
     });
